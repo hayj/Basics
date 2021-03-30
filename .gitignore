@@ -6,7 +6,6 @@ _trash/
 trash/
 
 # Misc files:
-*.sh
 !README.md
 TODO.md
 
