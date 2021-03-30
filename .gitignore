@@ -4,6 +4,7 @@ build/
 dist/
 _trash/
 trash/
+target
 
 # Misc files:
 !README.md
