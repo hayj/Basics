@@ -5,6 +5,7 @@ dist/
 _trash/
 trash/
 target
+*.iml
 
 # Misc files:
 !README.md
