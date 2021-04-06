@@ -10,6 +10,7 @@ target
 # Misc files:
 !README.md
 TODO.md
+*.sh
 
 # PyCharm:
 .idea
