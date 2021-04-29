@@ -1,6 +1,10 @@
 package fr.hayj.basics;
 
+import com.google.gson.JsonArray;
 import junit.framework.TestCase;
+
+import java.io.File;
+import java.io.IOException;
 
 public class BasicsTest extends TestCase {
 
@@ -51,5 +55,15 @@ public class BasicsTest extends TestCase {
             assertTrue(log(new Integer(5)) == 3);
         }
         assertTrue(gotAnException);
+    }
+
+    public void testFileToJsonArray() throws IOException {
+        String json = "[{\"a\": 1}, {\"a\": 2}]";
+        File file = Basics.stringToTmpFile(json);
+        String path = file.getAbsolutePath();
+        JsonArray array = Basics.fileToJsonArray(path);
+        this.assertTrue(array.size() > 1);
+        array = Basics.fileToJsonArray(file);
+        this.assertTrue(array.size() > 1);
     }
 }
