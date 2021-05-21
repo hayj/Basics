@@ -136,6 +136,10 @@ public class Basics {
         JsonArray array = parser.parse(br).getAsJsonArray();
         return array;
     }
+    public static boolean fileExists(String path) {
+        File file = new File(path);
+        return file.exists();
+    }
 
     public static String getResourceFilePath(String relativePath) throws URISyntaxException {
         URL res = Basics.class.getClassLoader().getResource(relativePath);
