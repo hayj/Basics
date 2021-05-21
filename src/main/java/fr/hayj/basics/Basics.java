@@ -20,6 +20,12 @@ import java.util.stream.Stream;
 import com.google.gson.JsonArray;
 
 public class Basics {
+
+    public static void main (String[] args){
+
+    }
+
+
     public static ArrayList<String> resourceToList(String path) throws FileNotFoundException {
         return resourceToList(path, true);
     }
@@ -142,5 +148,9 @@ public class Basics {
         File file = Paths.get(res.toURI()).toFile();
         String absolutePath = file.getAbsolutePath();
         return absolutePath;
+    }
+
+    public static void sleep(double seconds) throws InterruptedException {
+        Thread.sleep((int) seconds * 1000);
     }
 }
