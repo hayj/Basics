@@ -1,6 +1,8 @@
 package fr.hayj.basics;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -11,6 +13,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,7 +25,31 @@ import com.google.gson.JsonArray;
 public class Basics {
 
     public static void main (String[] args){
-
+        String value = "a:0.3,b:55,v:2.3";
+        String[] array = value.split(",");
+        ArrayList<String> keys = new ArrayList<String>();
+        ArrayList<Double> values = new ArrayList<Double>();
+        for(int i = 0 ; i < array.length ; i++)
+        {
+            String[] currentKeyValue = array[i].split(":");
+            keys.add(currentKeyValue[0]);
+            values.add(Double.parseDouble(currentKeyValue[1]));
+        }
+        double sum = 0;
+        for(int i = 0 ; i < values.size() ; i++)
+        {
+            sum += values.get(i);
+        }
+        for(int i = 0 ; i < values.size() ; i++)
+        {
+            values.set(i, values.get(i) / sum);
+        }
+        HashMap<String, Double> data = new HashMap<String, Double>();
+        for(int i = 0 ; i < values.size() ; i++)
+        {
+            data.put(keys.get(i), values.get(i));
+        }
+        Basics.p(data);
     }
 
 
@@ -156,5 +183,41 @@ public class Basics {
 
     public static void sleep(double seconds) throws InterruptedException {
         Thread.sleep((int) seconds * 1000);
+    }
+
+
+
+    public static Object jsonElementToObject(JsonElement element)
+    {
+        JsonPrimitive p;
+        try
+        {
+            p = element.getAsJsonPrimitive();
+        }
+        catch(Exception e)
+        {
+            return null;
+        }
+        if(p.isNumber())
+        {
+            Double v = p.getAsNumber().doubleValue();
+            if ((v == Math.floor(v)) && !Double.isInfinite(v))
+                return p.getAsNumber().longValue();
+            else
+                return v;
+        }
+        else if(p.isBoolean())
+        {
+            return p.getAsBoolean();
+        }
+        else if(p.isString())
+        {
+            return p.getAsString();
+        }
+        else if(p.isJsonNull())
+        {
+            return null;
+        }
+        return null;
     }
 }

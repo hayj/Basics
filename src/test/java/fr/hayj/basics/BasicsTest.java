@@ -1,10 +1,13 @@
 package fr.hayj.basics;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
 import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
 public class BasicsTest extends TestCase {
 
@@ -65,5 +68,19 @@ public class BasicsTest extends TestCase {
         this.assertTrue(array.size() > 1);
         array = Basics.fileToJsonArray(file);
         this.assertTrue(array.size() > 1);
+    }
+
+    public void testPrimitive() throws IOException, URISyntaxException {
+        JsonArray json = (JsonArray) Basics.resourceToJsonArray("sample.json");
+        Basics.p(json);
+        for(int i = 0 ; i < json.size() ; i++)
+        {
+            JsonElement element = json.get(i);
+            Object o = Basics.jsonElementToObject(element);
+            Basics.p(o);
+            if(o != null)
+                Basics.p(o.getClass().getName());
+            Basics.p("\n");
+        }
     }
 }
