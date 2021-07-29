@@ -45,6 +45,6 @@ deploy:
   <<: *tags
   stage: deploy
   only:
-    - master
+    - main
   script:
     - mvn $MAVEN_CLI_OPTS -DskipTests -s ci_settings.xml deploy
