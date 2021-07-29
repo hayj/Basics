@@ -1,3 +1,3 @@
 # Basics
 
-This library gather several common tools and function 
+This library gather several common tools and functions.
