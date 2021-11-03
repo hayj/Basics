@@ -14,9 +14,6 @@ import java.util.HashMap;
 
 public class BasicsTest extends TestCase
 {
-
-
-
 	private static String getString(boolean go)
 	{
 		if(go)
@@ -65,6 +62,11 @@ public class BasicsTest extends TestCase
 			assertTrue(log(new Integer(5)) == 3);
 		}
 		assertTrue(gotAnException);
+	}
+	
+	public void testCli()
+	{
+		assertTrue(Basics.fastCLI("python --version").contains("Python"));
 	}
 
 	public void testFileToJsonArray() throws IOException

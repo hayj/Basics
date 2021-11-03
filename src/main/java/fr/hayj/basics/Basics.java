@@ -1,19 +1,15 @@
 package fr.hayj.basics;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -28,16 +24,135 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.gson.JsonArray;
+import org.apache.commons.io.FileUtils;
+import org.apache.cxf.helpers.IOUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.util.EntityUtils;
 
-import java.math.BigInteger;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 public class Basics {
+	public static void main(String[] args) {
+//		String value = "{\"t\": [2, 3], \"a\": \"a\", \"c\": null, \"d\": 1, \"b\": {\"e\": \"e\"}}";
+//		JsonObject o = Basics.stringToJsonObject(value);
+//		Basics.p(o);
+//		dumpNestedJsonArraysAndObjects(o);
+//		Basics.p(o);
+		Basics.p("Started...");
+		Basics.p(Basics.fastCLI("du -cha --max-depth=1 /home/hayj"));
+		Basics.p(Basics.fastCLI("python --version"));
+	}
+
+	public static String cli(String cli, int timeoutSeconds) {
+		try {
+			String[] commands = cli.split(" ");
+			Runtime rt = Runtime.getRuntime();
+			Process proc = rt.exec(commands);
+			if(!proc.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+			    //timeout - kill the process. 
+				proc.destroy(); // consider using destroyForcibly instead
+				return null;
+			}
+			BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+			BufferedReader stdError = new BufferedReader(new InputStreamReader(proc.getErrorStream()));
+			// Read the output from the command
+			// "Here is the standard output of the command:
+			String stdo = "";
+			String current = null;
+			while ((current = stdInput.readLine()) != null) {
+				stdo += current + "\n";
+			}
+			// Read any errors from the attempted command
+			// Here is the standard error of the command (if any):
+			String stde = "";
+			while ((current = stdError.readLine()) != null) {
+				stde += current + "\n";
+			}
+			return stdo + "\n\n" + stde;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static String fastCLI(String cli) {
+		return cli(cli, 2);
+	}
+
+	public static String httpGet(String url) {
+		try {
+			CloseableHttpClient httpClient = HttpClients.createDefault();
+			HttpGet request = new HttpGet(url);
+			try (CloseableHttpResponse response = httpClient.execute(request)) {
+				HttpEntity entity = response.getEntity();
+				if (entity != null) {
+					// return it as a String
+					String result = EntityUtils.toString(entity);
+					return result;
+				}
+			}
+			httpClient.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static String httpPost(String url, HashMap<String, String> map) // HashMap
+	{
+		try {
+			List<NameValuePair> params = new ArrayList<NameValuePair>(map.size());
+			for (String key : map.keySet()) {
+				Object o = map.get(key);
+				params.add(new BasicNameValuePair(key, (String) o));
+			}
+			HttpClient httpclient = HttpClients.createDefault();
+			HttpPost httppost = new HttpPost(url);
+			httppost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+			HttpResponse response = httpclient.execute(httppost);
+			HttpEntity entity = response.getEntity();
+			InputStream inputStream = entity.getContent();
+			String theString = IOUtils.toString(inputStream, "UTF-8");
+			return theString;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public static String getDomainName(String url) throws URISyntaxException {
+		URI uri = new URI(url);
+		String domain = uri.getHost();
+		return domain.startsWith("www.") ? domain.substring(4) : domain;
+	}
 
 	public static void dumpNestedJsonArraysAndObjects(JsonObject o) {
 		// java.lang.NoSuchMethodError: com.google.gson.JsonObject.keySet()
@@ -61,12 +176,12 @@ public class Basics {
 	}
 
 	public static String textToHash(String text, String algorithm) throws NoSuchAlgorithmException {
-		  final MessageDigest md = MessageDigest.getInstance(algorithm);
-		  md.update(text.getBytes(StandardCharsets.UTF_8));
-		  byte[] digest = md.digest();
-		  final BigInteger number = new BigInteger(1, digest);
-		  final String hexHash = number.toString(16);
-		  return hexHash;
+		final MessageDigest md = MessageDigest.getInstance(algorithm);
+		md.update(text.getBytes(StandardCharsets.UTF_8));
+		byte[] digest = md.digest();
+		final BigInteger number = new BigInteger(1, digest);
+		final String hexHash = number.toString(16);
+		return hexHash;
 
 //		MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
 //		messageDigest.update(text.getBytes(StandardCharsets.UTF_8));
@@ -76,14 +191,6 @@ public class Basics {
 
 	public static String textToHash(String text) throws NoSuchAlgorithmException {
 		return textToHash(text, "MD5");
-	}
-
-	public static void main(String[] args) {
-		String value = "{\"t\": [2, 3], \"a\": \"a\", \"c\": null, \"d\": 1, \"b\": {\"e\": \"e\"}}";
-		JsonObject o = Basics.stringToJsonObject(value);
-		Basics.p(o);
-		dumpNestedJsonArraysAndObjects(o);
-		Basics.p(o);
 	}
 
 	public static ArrayList<String> resourceToList(String path) throws FileNotFoundException {
@@ -107,12 +214,6 @@ public class Basics {
 			e.printStackTrace();
 		}
 		return list;
-	}
-
-	public static String getDomainName(String url) throws URISyntaxException {
-		URI uri = new URI(url);
-		String domain = uri.getHost();
-		return domain.startsWith("www.") ? domain.substring(4) : domain;
 	}
 
 	public static String getStackTrace(final Throwable throwable) {
@@ -193,25 +294,6 @@ public class Basics {
 		JsonParser parser = new JsonParser();
 		JsonArray array = parser.parse(br).getAsJsonArray();
 		return array;
-	}
-
-	public static String request(String url) {
-		try {
-			CloseableHttpClient httpClient = HttpClients.createDefault();
-			HttpGet request = new HttpGet(url);
-			try (CloseableHttpResponse response = httpClient.execute(request)) {
-				HttpEntity entity = response.getEntity();
-				if (entity != null) {
-					// return it as a String
-					String result = EntityUtils.toString(entity);
-					return result;
-				}
-			}
-			httpClient.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
 	}
 
 	public static JsonObject stringToJsonObject(String json) {
